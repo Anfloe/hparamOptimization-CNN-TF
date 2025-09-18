@@ -1,47 +1,43 @@
+# CIFAR-10 CNN Hyperparameter Search (Modernized)
 
-# CIFAR-10 CNN Hyperparameter Search
-
-This project explores **hyperparameter tuning** for convolutional neural networks (CNNs) on the **CIFAR-10 dataset**.  
-The notebook compares two model architectures (Sequential vs. Functional API) and two search strategies (scikit-learn’s `RandomizedSearchCV` vs. a custom random-search loop).
+This notebook explores **hyperparameter tuning** for CNNs on **CIFAR-10**, comparing a simple **Sequential** model (Model A) and a **Functional** model with two branches (Model B).  
+The search is now done with a **custom random-search loop** (no scikit-learn wrappers), and training uses a robust callback recipe (EarlyStopping, ReduceLROnPlateau, checkpointing).
 
 ---
 
 ## Contents
-- **Model A (Sequential API):**  
-  A baseline CNN with three convolutional blocks.  
-  - Hyperparameter search with `RandomizedSearchCV`  
-  - Custom random-search loop for more control  
-  - Reached modest performance (~30% accuracy in CV; ~70% in custom search)
 
-- **Model B (Functional API):**  
-  A more flexible CNN with two parallel convolutional paths (3×3 and 5×5 kernels) merged before classification.  
-  - Same random-search procedure applied  
-  - Consistently higher accuracy than the Sequential model  
-  - Best configuration reached **~94% validation accuracy**
+- **Model A (Sequential API)**  
+  Three conv blocks with BatchNorm/Dropout and pooling.  
+  - Tuned via custom random search (optimizer, LR, init, activation, dropout, filters, batch size).  
+  - Best recent configs reached **~0.58–0.60 validation accuracy** with **Adam (1e-3), He init, ReLU, light/no dropout, 32–64 filters**.
 
-- **Final evaluation:**  
-  The best functional model was trained with:  
-  - Optimizer: **Adadelta (lr=0.001)**  
-  - Init: **he_normal**  
-  - Activation: **ReLU**  
-  - Dropout: **0.2**  
-  - Filters: **64**  
-  - Batch size: **64**
+- **Model B (Functional API)**  
+  Two parallel conv paths (3×3 and 5×5) merged before classification.  
+  - Tuned with the same random-search procedure.  
+  - Best recent configs reached **~0.48–0.50 validation accuracy** (often faster per epoch due to fewer FLOPs despite similar parameter counts).
 
-  Achieved **~90.6% test accuracy** with stable validation curves.
+- **Final training recipe (both models)**  
+  - **EarlyStopping** on `val_accuracy` (patience≈5, restore best weights)  
+  - **ReduceLROnPlateau** (halve LR on plateau; min LR guard)  
+  - **ModelCheckpoint** (save best weights)  
+  - Optional: mixed precision on GPU, light on-GPU augmentation, label smoothing
 
 ---
 
 ## Key Takeaways
-- The **Functional API model** outperforms the Sequential CNN, showing the benefit of multi-branch architectures.  
-- Random search can surface strong hyperparameter sets, but visualizing results makes comparison clearer.  
-- Early stopping helps prevent overfitting and speeds up training.  
-- Note: The notebook uses `binary_crossentropy` for continuity. For multi-class problems like CIFAR-10, the standard choice is `categorical_crossentropy` or `sparse_categorical_crossentropy`.
+
+- **Optimization > width:** Moderate learning rates (≈ **1e-3 to 1e-2**) and well-chosen optimizers (Adam/RMSprop; SGD with sensible LR) mattered more than doubling filters.  
+- **Regularization:** With BatchNorm, **light or no dropout (0.0–0.2)** was most effective.  
+- **Speed vs params:** Model B often trains **faster per epoch** even with similar/more params because it pools earlier → fewer conv FLOPs at high resolution.
 
 ---
 
 ## How to Run
-1. Install dependencies:
+
+1. **Install dependencies**
    ```bash
    pip install -r requirements.txt
-
+   # If you want model diagrams:
+   # (Linux) sudo apt-get install graphviz
+   # (macOS) brew install graphviz
