@@ -1,4 +1,4 @@
-# CIFAR-10 CNN Hyperparameter Search 
+# CIFAR-10 CNN Hyperparameter Search with TensorFlow
 
 This notebook explores **hyperparameter tuning** for CNNs on **CIFAR-10**, comparing a simple **Sequential** model (Model A) and a **Functional** model with two branches (Model B).  
 The search is done with a **custom random-search loop**, and training uses a robust callback recipe (EarlyStopping, ReduceLROnPlateau, checkpointing).
