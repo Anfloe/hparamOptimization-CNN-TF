@@ -1,7 +1,7 @@
 # CIFAR-10 CNN Hyperparameter Search (Modernized)
 
 This notebook explores **hyperparameter tuning** for CNNs on **CIFAR-10**, comparing a simple **Sequential** model (Model A) and a **Functional** model with two branches (Model B).  
-The search is now done with a **custom random-search loop** (no scikit-learn wrappers), and training uses a robust callback recipe (EarlyStopping, ReduceLROnPlateau, checkpointing).
+The search is done with a **custom random-search loop**, and training uses a robust callback recipe (EarlyStopping, ReduceLROnPlateau, checkpointing).
 
 ---
 
@@ -17,18 +17,12 @@ The search is now done with a **custom random-search loop** (no scikit-learn wra
   - Tuned with the same random-search procedure.  
   - Best recent configs reached **~0.48–0.50 validation accuracy** (often faster per epoch due to fewer FLOPs despite similar parameter counts).
 
-- **Final training recipe (both models)**  
-  - **EarlyStopping** on `val_accuracy` (patience≈5, restore best weights)  
-  - **ReduceLROnPlateau** (halve LR on plateau; min LR guard)  
-  - **ModelCheckpoint** (save best weights)  
-  - Optional: mixed precision on GPU, light on-GPU augmentation, label smoothing
-
 ---
 
 ## Key Takeaways
 
-- **Optimization > width:** Moderate learning rates (≈ **1e-3 to 1e-2**) and well-chosen optimizers (Adam/RMSprop; SGD with sensible LR) mattered more than doubling filters.  
-- **Regularization:** With BatchNorm, **light or no dropout (0.0–0.2)** was most effective.  
+- Moderate learning rates (≈ 1e-3 to 1e-2) and well-chosen optimizers (Adam/RMSprop; SGD with sensible LR) mattered more than doubling filters.  
+- **Regularization:** With BatchNorm, light or no dropout (0.0–0.2) was most effective.  
 - **Speed vs params:** Model B often trains **faster per epoch** even with similar/more params because it pools earlier → fewer conv FLOPs at high resolution.
 
 ---
